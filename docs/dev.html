@@ -1,25 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Development Documentation | ReZero</title>
+    <title>開発ドキュメント | Project ReZero</title>
     <link rel="stylesheet" href="../style.css">
+    <style>
+        body { background: #000; color: #fff; font-family: sans-serif; line-height: 1.8; padding: 60px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1, h2 { border-bottom: 1px solid #333; padding-bottom: 10px; }
+        code { background: #222; padding: 2px 5px; border-radius: 3px; }
+        pre { background: #111; padding: 20px; border: 1px solid #333; overflow-x: auto; }
+    </style>
 </head>
 <body>
-    <div class="content-page">
-        <h1>Development Documentation</h1>
-        <section>
-            <h2>ReZero Language (.rz) Syntax</h2>
-            <pre>
-@Requires(x > 0)
-@Ensures(result > 0)
-fn square(x: int) -> int {
-    let result: int = x * x;
+    <div class="container">
+        <h1>技術仕様書: Project ReZero</h1>
+
+        <h2>1. 概要</h2>
+        <p>ReZeroは、形式検証と可逆計算を統合したネイティブコンパイラスタックです。プログラムの全実行パスを数学的に証明し、かつ実行状態を物理的に巻き戻すことが可能です。</p>
+
+        <h2>2. ReZero 言語仕様 (.rz)</h2>
+        <pre>
+@Requires(y > 0)
+@Ensures(result > x)
+fn calculate(x: int, y: int) -> int {
+    let result: int = x + y;
     return result;
 }
-            </pre>
-        </section>
-        <a href="../index.html" class="btn secondary">Back to Home</a>
+        </pre>
+
+        <h2>3. 物理的整合性: LRSスタック</h2>
+        <p>破壊的代入が行われる直前に、旧状態を <code>Linear Reversible Stack (LRS)</code> に退避します。これにより、情報の損失を物理的に防ぎ、ランドアウアの原理に基づく計算熱の最小化を目指します。</p>
+
+        <a href="../index.html" style="color: #888; text-decoration: none;">&larr; ホームへ戻る</a>
     </div>
 </body>
 </html>

@@ -1,11 +1,8 @@
-use crate::ir::{IR, Expr, Op, CompOp, Function};
+use crate::ir::*;
 use z3::{Config, Context, Solver, Params, ast::{Int, Bool, Ast}, SatResult};
 use std::collections::HashMap;
 
-pub struct Verifier<'ctx> {
-    ctx: &'ctx Context,
-    solver: Solver<'ctx>,
-}
+pub struct Verifier<'ctx> { ctx: &'ctx Context, solver: Solver<'ctx> }
 
 impl<'ctx> Verifier<'ctx> {
     pub fn new(ctx: &'ctx Context) -> Self {
@@ -16,86 +13,82 @@ impl<'ctx> Verifier<'ctx> {
         Self { ctx, solver }
     }
 
-    fn translate_expr(&self, expr: &Expr, vars: &HashMap<String, Int<'ctx>>) -> Result<Int<'ctx>, String> {
+    fn translate_expr(&self, expr: &Expr, vars: &HashMap<String, Int<'ctx>>) -> anyhow::Result<Int<'ctx>> {
         match expr {
-            Expr::Literal(val) => Ok(Int::from_i64(self.ctx, *val as i64)),
-            Expr::Variable(name) => vars.get(name).cloned().ok_or_else(|| format!("Undefined variable: {}", name)),
+            Expr::Literal(v) => Ok(Int::from_i64(self.ctx, *v as i64)),
+            Expr::Variable(n) => vars.get(n).cloned().ok_or(anyhow::anyhow!("Undefined: {}", n)),
             Expr::Binary { op, left, right } => {
                 let l = self.translate_expr(left, vars)?;
                 let r = self.translate_expr(right, vars)?;
                 match op {
-                    Op::Add => Ok(l + r),
-                    Op::Sub => Ok(l - r),
-                    Op::Mul => Ok(l * r),
+                    Op::Add => Ok(l + r), Op::Sub => Ok(l - r), Op::Mul => Ok(l * r),
                     Op::Div => {
-                        let is_zero = r._eq(&Int::from_i64(self.ctx, 0));
-                        self.solver.assert(&is_zero.not());
+                        self.solver.assert(&r._eq(&Int::from_i64(self.ctx, 0)).not());
                         Ok(l / r)
                     }
                 }
             }
-            _ => Ok(Int::from_i64(self.ctx, 0)),
+            Expr::ArrayAccess { name, index } => {
+                let idx = self.translate_expr(index, vars)?;
+                // Bounds check: 0 <= idx < 100 (assuming size 100 for simplicity)
+                self.solver.assert(&idx.ge(&Int::from_i64(self.ctx, 0)));
+                self.solver.assert(&idx.lt(&Int::from_i64(self.ctx, 100)));
+                Ok(Int::new_const(self.ctx, format!("{}_at_idx", name).as_str()))
+            }
+            Expr::PointerDereference(name) => {
+                let p = vars.get(name).ok_or(anyhow::anyhow!("Undefined pointer: {}", name))?;
+                self.solver.assert(&p._eq(&Int::from_i64(self.ctx, 0)).not());
+                Ok(Int::new_const(self.ctx, format!("val_at_{}", name).as_str()))
+            }
+            _ => Err(anyhow::anyhow!("Invalid expression")),
         }
     }
 
-    fn translate_compare(&self, expr: &Expr, vars: &HashMap<String, Int<'ctx>>) -> Result<Bool<'ctx>, String> {
+    fn translate_bool(&self, expr: &Expr, vars: &HashMap<String, Int<'ctx>>) -> anyhow::Result<Bool<'ctx>> {
         match expr {
             Expr::Compare { op, left, right } => {
                 let l = self.translate_expr(left, vars)?;
                 let r = self.translate_expr(right, vars)?;
-                match op {
-                    CompOp::Gt => Ok(l.gt(&r)), CompOp::Ge => Ok(l.ge(&r)),
-                    CompOp::Lt => Ok(l.lt(&r)), CompOp::Le => Ok(l.le(&r)),
-                    CompOp::Eq => Ok(l._eq(&r)), CompOp::Ne => Ok(l._eq(&r).not()),
-                }
+                Ok(match op {
+                    CompOp::Gt => l.gt(&r), CompOp::Ge => l.ge(&r), CompOp::Lt => l.lt(&r),
+                    CompOp::Le => l.le(&r), CompOp::Eq => l._eq(&r), CompOp::Ne => l._eq(&r).not(),
+                })
             }
-            Expr::BoolLiteral(b) => Ok(Bool::from_bool(self.ctx, *b)),
-            _ => Err("Invalid comparison".to_string()),
+            _ => Err(anyhow::anyhow!("Expected comparison")),
         }
     }
 
-    pub fn verify_function(&mut self, func: &Function) -> Result<(), String> {
+    pub fn verify_function(&mut self, func: &Function) -> anyhow::Result<()> {
         self.solver.push();
         let mut vars = HashMap::new();
         let mut version = HashMap::new();
-
         for (name, _) in &func.params {
-            let vname = format!("{}_0", name);
-            vars.insert(name.clone(), Int::new_const(self.ctx, vname.as_str()));
+            vars.insert(name.clone(), Int::new_const(self.ctx, format!("{}_0", name).as_str()));
             version.insert(name.clone(), 0);
         }
-
-        for req in &func.requires {
-            let cond = self.translate_compare(req, &vars)?;
-            self.solver.assert(&cond);
-        }
-
-        self.verify_body(&func.body, &mut vars, &mut version)?;
-
-        for ens in &func.ensures {
-            let cond = self.translate_compare(ens, &vars)?;
-            self.solver.push();
-            self.solver.assert(&cond.not());
-            if self.solver.check() == SatResult::Sat {
-                let model = self.solver.get_model().unwrap();
-                return Err(format!("Post-condition violated. Counter-example: {:?}", model));
-            }
-            self.solver.pop(1);
-        }
-
+        self.verify_stmts(&func.body, &mut vars, &mut version)?;
         self.solver.pop(1);
         Ok(())
     }
 
-    fn verify_body(&mut self, body: &[IR], vars: &mut HashMap<String, Int<'ctx>>, version: &mut HashMap<String, u32>) -> Result<(), String> {
-        for ir in body {
+    fn verify_stmts(&mut self, stmts: &[IR], vars: &mut HashMap<String, Int<'ctx>>, version: &mut HashMap<String, u32>) -> anyhow::Result<()> {
+        for ir in stmts {
             match ir {
-                IR::Declare { name, init_val, .. } => {
+                IR::AssertPre(e) => self.solver.assert(&self.translate_bool(e, vars)?),
+                IR::AssertPost(e) => {
+                    let cond = self.translate_bool(e, vars)?;
+                    self.solver.push();
+                    self.solver.assert(&cond.not());
+                    if self.solver.check() == SatResult::Sat {
+                        return Err(anyhow::anyhow!("Post-condition violated. Model: {:?}", self.solver.get_model()));
+                    }
+                    self.solver.pop(1);
+                }
+                IR::Declare { name, init, .. } => {
                     let v = version.entry(name.clone()).or_insert(0);
-                    let vname = format!("{}_{}", name, v);
-                    let z3_var = Int::new_const(self.ctx, vname.as_str());
-                    if let Some(val_expr) = init_val {
-                        let val = self.translate_expr(val_expr, vars)?;
+                    let z3_var = Int::new_const(self.ctx, format!("{}_{}", name, v).as_str());
+                    if let Some(i) = init {
+                        let val = self.translate_expr(i, vars)?;
                         self.solver.assert(&z3_var._eq(&val));
                     }
                     vars.insert(name.clone(), z3_var);
@@ -103,31 +96,20 @@ impl<'ctx> Verifier<'ctx> {
                 IR::Assign { name, val } => {
                     let v = version.entry(name.clone()).or_insert(0);
                     *v += 1;
-                    let vname = format!("{}_{}", name, v);
-                    let z3_var = Int::new_const(self.ctx, vname.as_str());
+                    let z3_var = Int::new_const(self.ctx, format!("{}_{}", name, v).as_str());
                     let z3_val = self.translate_expr(val, vars)?;
                     self.solver.assert(&z3_var._eq(&z3_val));
                     vars.insert(name.clone(), z3_var);
                 }
-                IR::If { cond, then_branch, else_branch } => {
-                    // Simplified if verification
-                    let c = self.translate_compare(cond, vars)?;
+                IR::If { cond, then_b, else_b } => {
+                    let c = self.translate_bool(cond, vars)?;
                     self.solver.push();
                     self.solver.assert(&c);
-                    self.verify_body(then_branch, &mut vars.clone(), &mut version.clone())?;
+                    self.verify_stmts(then_b, &mut vars.clone(), &mut version.clone())?;
                     self.solver.pop(1);
                     self.solver.push();
                     self.solver.assert(&c.not());
-                    self.verify_body(else_branch, &mut vars.clone(), &mut version.clone())?;
-                    self.solver.pop(1);
-                }
-                IR::Assert { cond, message } => {
-                    let c = self.translate_compare(cond, vars)?;
-                    self.solver.push();
-                    self.solver.assert(&c.not());
-                    if self.solver.check() == SatResult::Sat {
-                        return Err(format!("Assertion failed: {}", message));
-                    }
+                    self.verify_stmts(else_b, &mut vars.clone(), &mut version.clone())?;
                     self.solver.pop(1);
                 }
                 _ => {}

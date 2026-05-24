@@ -1,1 +1,29 @@
-<html><body>Entropy Monitor</body></html>
+<!DOCTYPE html>
+<html>
+<body style="background: #000; color: #fff; font-family: monospace; padding: 20px;">
+    <h3 style="border-bottom: 1px solid #333; padding-bottom: 5px;">REZERO ENTROPY MONITOR</h3>
+    <div style="margin: 20px 0; background: #111; padding: 15px; border: 1px solid #333;">
+        <p>ASSIGNMENTS: <span id="assigns">0</span></p>
+        <p>ENTROPY (J/K): <br>
+           <span id="entropy" style="color: #fff; font-size: 1.5em; font-weight: bold;">0</span>
+        </p>
+    </div>
+    <div style="font-size: 0.8em; color: #666;">
+        Landauer Limit: ΔS = kB ln 2 per bit
+    </div>
+    <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+    <h3>LRS STACK STATE</h3>
+    <div id="stackList" style="font-size: 0.9em; color: #888;">(EMPTY)</div>
+    <script>
+        window.addEventListener('message', event => {
+            const m = event.data;
+            if (m.type === 'entropyUpdate') {
+                document.getElementById('assigns').innerText = m.data.assignmentsCount;
+                document.getElementById('entropy').innerText = m.data.entropy.toExponential(4);
+            } else if (m.type === 'updateDebug') {
+                document.getElementById('stackList').innerHTML = m.stack.map(s => `<div>[LRS] ${s.name}: ${s.val}</div>`).join('');
+            }
+        });
+    </script>
+</body>
+</html>

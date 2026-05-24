@@ -1,80 +1,75 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project ReZero | Formally-Verified & Reversible Computing</title>
+    <title>Project ReZero | 決定論的かつ可逆なコンピューティングの極致</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        :root { --bg: #000; --fg: #fff; --gray: #333; }
+        body { background: var(--bg); color: var(--fg); font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif; margin: 0; }
+        header { border-bottom: 1px solid var(--gray); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .hero { padding: 100px 40px; text-align: center; }
+        h1 { font-size: 3rem; letter-spacing: 0.2rem; margin-bottom: 20px; }
+        .description { font-size: 1.2rem; color: #888; max-width: 800px; margin: 0 auto 50px; }
+        .download-box { border: 1px solid var(--gray); padding: 40px; max-width: 600px; margin: 0 auto; }
+        .checkbox-area { margin-bottom: 30px; font-size: 0.9rem; text-align: left; }
+        .btn { display: inline-block; padding: 15px 40px; border: 1px solid var(--fg); color: var(--fg); text-decoration: none; transition: 0.3s; cursor: pointer; background: none; font-size: 1rem; }
+        .btn:disabled { border-color: var(--gray); color: var(--gray); cursor: not-allowed; }
+        .btn:not(:disabled):hover { background: var(--fg); color: var(--bg); }
+        footer { border-top: 1px solid var(--gray); padding: 40px; text-align: center; font-size: 0.8rem; color: #666; }
+        .links { margin-bottom: 20px; }
+        .links a { color: #888; text-decoration: none; margin: 0 15px; }
+        .links a:hover { color: #fff; }
+    </style>
 </head>
 <body>
     <header>
-        <nav>
-            <div class="logo">Project ReZero</div>
-            <ul>
-                <li><a href="#features">Features</a></li>
-                <li><a href="docs/dev.html">Documentation</a></li>
-                <li><a href="#download">Download</a></li>
-            </ul>
-        </nav>
+        <div style="font-weight: bold; font-size: 1.5rem;">REZERO</div>
+        <nav><a href="docs/dev.html" style="color: #fff; text-decoration: none;">DEVELOPMENT</a></nav>
     </header>
 
     <section class="hero">
-        <div class="hero-content">
-            <h1>The Apex of Deterministic & Reversible Computing</h1>
-            <p>Eradicate bugs with 100% mathematical certainty. Harness the power of time-travel debugging and physical entropy profiling.</p>
-            <div class="cta-buttons">
-                <a href="#download" class="btn primary">Get Started</a>
-                <a href="docs/dev.html" class="btn secondary">Read Docs</a>
-            </div>
-        </div>
-    </section>
+        <h1>PROJECT REZERO</h1>
+        <p class="description">
+            数学的完全証明によるバグの根絶。LRSスタックによる可逆実行（タイムトラベル）。<br>
+            ランドアウアの原理に基づき、熱エントロピーを物理レベルで抑制する次世代コンピューティング。
+        </p>
 
-    <section id="features" class="features">
-        <h2>Core Technologies</h2>
-        <div class="feature-grid">
-            <div class="feature-card">
-                <h3>SMT Formal Verification</h3>
-                <p>Integrated Z3 solver proves the absence of null-pointer dereferences, array-out-of-bounds, and division-by-zero with mathematical rigor.</p>
+        <div class="download-box">
+            <h3>SOFTWARE DOWNLOAD</h3>
+            <div class="checkbox-area">
+                <input type="checkbox" id="agree">
+                <label for="agree">
+                    <a href="docs/terms.html" target="_blank">利用規約</a>、
+                    <a href="docs/privacy.html" target="_blank">プライバシーポリシー</a>、
+                    および<a href="docs/license.html" target="_blank">ソフトウェアライセンス契約 (EULA)</a>に同意します。
+                </label>
             </div>
-            <div class="feature-card">
-                <h3>LRS Reversible Stack</h3>
-                <p>Automatically injects History Stack (LRS) instructions to allow perfect forward and backward execution of any program.</p>
-            </div>
-            <div class="feature-card">
-                <h3>Entropy Profiling</h3>
-                <p>Real-time estimation of theoretical thermal dissipation based on Landauer's principle for next-generation green computing.</p>
-            </div>
-        </div>
-    </section>
-
-    <section id="download" class="download">
-        <h2>Experience ReZero</h2>
-        <div class="download-links">
-            <div class="download-item">
-                <h3>ReZero Core (CLI)</h3>
-                <p>The heart of the system. Compiler, Verifier, and VM.</p>
-                <a href="#" class="btn">Download .exe</a>
-            </div>
-            <div class="download-item">
-                <h3>ReZero Studio (VS Code)</h3>
-                <p>Full IDE support with LSP and Profiler.</p>
-                <a href="#" class="btn">Download .vsix</a>
-            </div>
-            <div class="download-item">
-                <h3>ReZero Standalone</h3>
-                <p>Independent Desktop Editor (Windows).</p>
-                <a href="#" class="btn">Download .exe</a>
+            <div id="download-links">
+                <button id="dl-compiler" class="btn" disabled onclick="location.href='#'">COMPILER (.EXE)</button>
+                <button id="dl-studio" class="btn" disabled onclick="location.href='#'">STUDIO (.VSIX)</button>
             </div>
         </div>
     </section>
 
     <footer>
-        <div class="footer-links">
-            <a href="docs/terms.html">Terms of Service</a>
-            <a href="docs/privacy.html">Privacy Policy</a>
-            <a href="docs/license.html">EULA</a>
+        <div class="links">
+            <a href="docs/terms.html">利用規約</a>
+            <a href="docs/privacy.html">プライバシーポリシー</a>
+            <a href="docs/license.html">EULA / 免責事項</a>
         </div>
-        <p>&copy; 2024 Project ReZero. All rights reserved.</p>
+        <p>&copy; 2024 PROJECT REZERO. ALL RIGHTS RESERVED.</p>
     </footer>
+
+    <script>
+        const checkbox = document.getElementById('agree');
+        const btn1 = document.getElementById('dl-compiler');
+        const btn2 = document.getElementById('dl-studio');
+        checkbox.addEventListener('change', () => {
+            btn1.disabled = !checkbox.checked;
+            btn2.disabled = !checkbox.checked;
+        });
+    </script>
 </body>
 </html>

@@ -1,23 +1,78 @@
-use crate::ir::{IR, Type, Program, Function};
+use crate::ir::*;
 
-pub struct CodeGenerator;
+pub struct NativeGenerator;
 
-impl CodeGenerator {
-    pub fn compile_to_rzb(program: Program) -> String {
-        let mut compiled_functions = Vec::new();
-        for func in program.functions {
-            let mut new_body = Vec::new();
-            for ir in func.body {
-                match ir {
-                    IR::Assign { ref name, .. } => {
-                        new_body.push(IR::PushLRS { name: name.clone(), ty: Type::Int32 });
-                        new_body.push(ir.clone());
-                    }
-                    _ => new_body.push(ir),
-                }
+impl NativeGenerator {
+    pub fn generate_c(program: &Program) -> String {
+        let mut c = String::new();
+        c.push_str("#include <stdio.h>\n#include <stdlib.h>\n#include <stdint.h>\n\n");
+        c.push_str("typedef struct { char* name; int32_t val; } LRSNode;\n");
+        c.push_str("LRSNode lrs[10000]; int lrs_ptr = 0;\n\n");
+        c.push_str("void push_lrs(char* name, int32_t val) { lrs[lrs_ptr].name = name; lrs[lrs_ptr].val = val; lrs_ptr++; }\n");
+        c.push_str("void pop_lrs() { if(lrs_ptr > 0) lrs_ptr--; }\n\n");
+
+        for func in &program.functions {
+            let ret_t = match func.ret_ty { Type::Int => "int32_t", Type::Bool => "int8_t", _ => "void*" };
+            c.push_str(&format!("{} {}(", ret_t, func.name));
+            let params: Vec<String> = func.params.iter().map(|(n, _)| format!("int32_t {}", n)).collect();
+            c.push_str(&params.join(", "));
+            c.push_str(") {\n");
+            for ir in &func.body {
+                c.push_str(&Self::gen_ir(ir, 1));
             }
-            compiled_functions.push(Function { body: new_body, ..func });
+            c.push_str("}\n\n");
         }
-        serde_json::to_string_pretty(&Program { functions: compiled_functions }).unwrap()
+
+        c.push_str("int main(int argc, char** argv) {\n");
+        c.push_str("  if(argc > 1 && argv[1][0] == 'p') {\n"); // Dummy entry for first function
+        if let Some(f) = program.functions.get(0) {
+            c.push_str(&format!("    printf(\"Result: %d\\n\", {}(10, 20));\n", f.name));
+        }
+        c.push_str("  }\n");
+        c.push_str("  printf(\"ReZero Native Execution Finished.\\n\");\n");
+        c.push_str("  return 0;\n}\n");
+        c
+    }
+
+    fn gen_ir(ir: &IR, indent: usize) -> String {
+        let sp = "  ".repeat(indent);
+        match ir {
+            IR::Declare { name, init, .. } => {
+                let init_val = if let Some(e) = init { format!(" = {}", Self::gen_expr(e)) } else { "".into() };
+                format!("{}int32_t {}{};\n", sp, name, init_val)
+            }
+            IR::Assign { name, val } => {
+                let mut s = format!("{}push_lrs(\"{}\", {});\n", sp, name, name);
+                s.push_str(&format!("{}{} = {};\n", sp, name, Self::gen_expr(val)));
+                s
+            }
+            IR::Return(e) => format!("{}return {};\n", sp, Self::gen_expr(e)),
+            IR::If { cond, then_b, else_b } => {
+                let mut s = format!("{}if ({}) {{\n", sp, Self::gen_expr(cond));
+                for i in then_b { s.push_str(&Self::gen_ir(i, indent + 1)); }
+                s.push_str(&format!("{}}} else {{\n", sp));
+                for i in else_b { s.push_str(&Self::gen_ir(i, indent + 1)); }
+                s.push_str(&format!("{}}}\n", sp));
+                s
+            }
+            _ => "".into(),
+        }
+    }
+
+    fn gen_expr(expr: &Expr) -> String {
+        match expr {
+            Expr::Literal(v) => v.to_string(),
+            Expr::Variable(n) => n.clone(),
+            Expr::Binary { op, left, right } => {
+                let o = match op { Op::Add => "+", Op::Sub => "-", Op::Mul => "*", Op::Div => "/" };
+                format!("({} {} {})", Self::gen_expr(left), o, Self::gen_expr(right))
+            }
+            Expr::Compare { op, left, right } => {
+                let o = match op { CompOp::Gt => ">", CompOp::Ge => ">=", CompOp::Lt => "<", CompOp::Le => "<=", CompOp::Eq => "==", CompOp::Ne => "!=" };
+                format!("({} {} {})", Self::gen_expr(left), o, Self::gen_expr(right))
+            }
+            Expr::ArrayAccess { name, index } => format!("{}[{}]", name, Self::gen_expr(index)),
+            Expr::PointerDereference(name) => format!("(*{})", name),
+        }
     }
 }
