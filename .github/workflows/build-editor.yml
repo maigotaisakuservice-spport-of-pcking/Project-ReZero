@@ -1,0 +1,42 @@
+name: Build and Package ReZero Studio IDE
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  package-editor:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: rezero-studio/package.json
+
+    - name: Install Node Dependencies
+      run: |
+        cd rezero-studio
+        npm install
+
+    - name: Compile VS Code Extension
+      run: |
+        cd rezero-studio
+        npm run compile
+
+    - name: Package VSIX
+      run: |
+        cd rezero-studio
+        npx vsce package -o ../dist/rezero-studio.vsix
+
+    - name: Upload VSIX to Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: dist/rezero-studio.vsix
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,1 @@
+{ "name": "rezero-studio", "version": "1.0.0", "main": "out/extension.js", "scripts": { "compile": "tsc" } }
