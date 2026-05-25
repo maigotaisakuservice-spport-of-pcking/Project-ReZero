@@ -9,7 +9,7 @@ connection.onInitialize(() => ({ capabilities: { textDocumentSync: TextDocumentS
 
 documents.onDidChangeContent(change => {
     const text = change.document.getText();
-    const cp = exec(`rezero-core verify dummy.rz --stdin`, (err, stdout) => {
+    const cp = exec(`rezero-core verify dummy.rz --stdin`, (err: any, stdout: string) => {
         const diagnostics: Diagnostic[] = [];
         try {
             const res = JSON.parse(stdout);
@@ -32,7 +32,7 @@ documents.onDidChangeContent(change => {
             uri: change.document.uri,
             assignmentsCount,
             entropy: estimatedEntropy
-        });
+        } as any);
     });
     cp.stdin?.write(text);
     cp.stdin?.end();

@@ -26,5 +26,5 @@
     }
   },
   "dependencies": { "vscode-languageclient": "^9.0.1", "vscode-languageserver": "^9.0.1" },
-  "devDependencies": { "typescript": "^5.3.3", "@types/vscode": "^1.80.0" }
+  "devDependencies": { "typescript": "^5.3.3", "@types/vscode": "^1.80.0", "@types/node": "^20.11.0" }
 }
