@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>ReZero Standalone Studio</title>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --sidebar-bg: #f5f5f7;
+            --border: #d2d2d7;
+            --accent: #0071e3;
+        }
+        body { margin: 0; padding: 0; background: var(--bg); color: #000; display: flex; height: 100vh; font-family: -apple-system, sans-serif; overflow: hidden; }
+        #sidebar { width: 200px; background: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+        #main-area { flex: 1; display: flex; flex-direction: column; }
+        #editor-container { flex: 1; position: relative; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; }
+        #profiler-area { width: 320px; background: #fff; border-left: 1px solid var(--border); flex-shrink: 0; }
+
+        .toolbar { height: 40px; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; gap: 12px; background: #fff; }
+        .tab-bar { height: 35px; background: var(--sidebar-bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 10px; font-size: 12px; }
+        .tab { background: #fff; padding: 8px 20px; border: 1px solid var(--border); border-bottom: none; border-radius: 4px 4px 0 0; font-weight: 500; }
+
+        .btn { background: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .btn:hover { opacity: 0.8; }
+        .btn.secondary { background: #e8e8ed; color: #000; }
+
+        #editor { flex: 1; padding: 24px; font-family: "SF Mono", "Fira Code", monospace; font-size: 14px; white-space: pre; outline: none; overflow: auto; }
+        .sidebar-item { padding: 8px 16px; font-size: 13px; color: #1d1d1f; cursor: pointer; }
+        .sidebar-item:hover { background: #e8e8ed; }
+        .sidebar-title { padding: 16px; font-size: 11px; font-weight: 700; color: #86868b; text-transform: uppercase; letter-spacing: 0.05em; }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <div class="sidebar-title">Explorer</div>
+        <div class="sidebar-item" style="background: #e8e8ed; font-weight: 600;">main.rz</div>
+        <div class="sidebar-item">config.rz</div>
+    </div>
+    <div id="main-area">
+        <div class="toolbar">
+            <button class="btn" onclick="stepForward()">Step Forward</button>
+            <button class="btn secondary" onclick="stepBackward()">Step Backward</button>
+            <div style="flex: 1;"></div>
+            <button class="btn" style="background: #000;">Build Native</button>
+        </div>
+        <div class="tab-bar">
+            <div class="tab">main.rz</div>
+        </div>
+        <div id="editor" contenteditable="true" spellcheck="false">
+@Requires(x > 0)
+@Ensures(result > x)
+fn process(x: int, y: int) -> int {
+    let temp: int = x + y;
+    let result: int = temp;
+    result = result * 2;
+    return result;
+}</div>
+    </div>
+    <div id="profiler-area">
+        <iframe id="profiler-frame" src="rezero-studio/webview/entropy-profiler.html" style="width:100%; height:100%; border:none;"></iframe>
+    </div>
+    <script>
+        function stepForward() {
+            const frame = document.getElementById('profiler-frame').contentWindow;
+            frame.postMessage({ type: 'updateDebug', pc: 1, stack: [{name:'result', val: 120}] }, '*');
+        }
+        function stepBackward() {
+            const frame = document.getElementById('profiler-frame').contentWindow;
+            frame.postMessage({ type: 'updateDebug', pc: 0, stack: [] }, '*');
+        }
+    </script>
+</body>
+</html>

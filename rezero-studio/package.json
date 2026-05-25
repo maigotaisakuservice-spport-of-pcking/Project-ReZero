@@ -1,0 +1,30 @@
+{
+  "name": "rezero-studio",
+  "displayName": "ReZero Studio",
+  "description": "Native Reversible & Formally Verified IDE",
+  "version": "1.0.0",
+  "publisher": "rezero-org",
+  "engines": { "vscode": "^1.80.0" },
+  "main": "./out/extension.js",
+  "scripts": {
+    "compile": "tsc -p ./"
+  },
+  "activationEvents": [ "onLanguage:rezero" ],
+  "contributes": {
+    "languages": [{ "id": "rezero", "aliases": ["ReZero"], "extensions": [".rz"] }],
+    "viewsContainers": { "activitybar": [{ "id": "rezero-explorer", "title": "ReZero", "icon": "$(cpu)" }] },
+    "views": { "rezero-explorer": [{ "id": "entropyProfiler", "type": "webview", "name": "Entropy Monitor" }] },
+    "commands": [
+        { "command": "rezero.stepForward", "title": "ReZero: Step Forward", "icon": "$(debug-step-over)" },
+        { "command": "rezero.stepBackward", "title": "ReZero: Step Backward", "icon": "$(debug-step-back)" }
+    ],
+    "menus": {
+        "view/title": [
+            { "command": "rezero.stepForward", "when": "view == entropyProfiler", "group": "navigation" },
+            { "command": "rezero.stepBackward", "when": "view == entropyProfiler", "group": "navigation" }
+        ]
+    }
+  },
+  "dependencies": { "vscode-languageclient": "^9.0.1", "vscode-languageserver": "^9.0.1" },
+  "devDependencies": { "typescript": "^5.3.3", "@types/vscode": "^1.80.0", "@types/node": "^20.11.0" }
+}

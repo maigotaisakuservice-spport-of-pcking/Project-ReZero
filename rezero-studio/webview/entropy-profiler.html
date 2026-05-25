@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<body style="background: #ffffff; color: #000000; font-family: -apple-system, sans-serif; padding: 20px;">
+    <h3 style="border-bottom: 2px solid #000; padding-bottom: 8px; font-weight: 700;">REZERO ENERGY PROFILER</h3>
+
+    <div style="margin: 24px 0; background: #f5f5f7; padding: 20px; border-radius: 12px; border: 1px solid #d2d2d7;">
+        <div style="font-size: 0.85rem; color: #86868b; margin-bottom: 8px;">推定熱エントロピー上昇 (J/K)</div>
+        <div id="entropy" style="font-size: 2rem; font-weight: 700; color: #0071e3;">0.0000e+0</div>
+
+        <div style="margin-top: 20px; font-size: 0.85rem; color: #86868b; margin-bottom: 8px;">破壊的代入検知数</div>
+        <div id="assigns" style="font-size: 1.5rem; font-weight: 600;">0</div>
+    </div>
+
+    <div style="font-size: 0.75rem; color: #86868b; line-height: 1.5;">
+        <p>※ ランドアウアの原理（Landauer's Principle）に基づき、1ビットの情報消去あたり ΔS = kB ln 2 のエントロピー増大を予測します。ReZeroのLRSスタックはこの損失を物理的に抑制します。</p>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #d2d2d7; margin: 32px 0;">
+
+    <h4 style="font-weight: 700; margin-bottom: 16px;">LRS STACK MONITOR (REAL-TIME)</h4>
+    <div id="stackList" style="font-size: 0.85rem; color: #424245; font-family: monospace; background: #f5f5f7; padding: 12px; border-radius: 8px; min-height: 100px;">
+        (スタックは空です)
+    </div>
+
+    <script>
+        window.addEventListener('message', event => {
+            const m = event.data;
+            if (m.type === 'entropyUpdate') {
+                document.getElementById('assigns').innerText = m.data.assignmentsCount;
+                document.getElementById('entropy').innerText = m.data.entropy.toExponential(4);
+            } else if (m.type === 'updateDebug') {
+                if (m.stack && m.stack.length > 0) {
+                    document.getElementById('stackList').innerHTML = m.stack.map(s => `<div>[PUSH] ${s.name}: ${s.val}</div>`).join('');
+                } else {
+                    document.getElementById('stackList').innerText = "(スタックは空です)";
+                }
+            }
+        });
+    </script>
+</body>
+</html>

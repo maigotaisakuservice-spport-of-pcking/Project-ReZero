@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project ReZero | 次世代可逆コンピューティング基盤</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --bg: #ffffff;
+            --fg: #000000;
+            --gray-light: #f5f5f7;
+            --gray-mid: #86868b;
+            --border: #d2d2d7;
+            --accent: #0071e3;
+        }
+        body {
+            background: var(--bg);
+            color: var(--fg);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: saturate(180%) blur(20px);
+            position: sticky;
+            top: 0;
+            border-bottom: 1px solid var(--border);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+        .hero {
+            padding: 120px 20px;
+            text-align: center;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 4rem;
+            font-weight: 700;
+            letter-spacing: -0.015em;
+            margin-bottom: 24px;
+        }
+        .tagline {
+            font-size: 1.5rem;
+            color: var(--gray-mid);
+            margin-bottom: 48px;
+            line-height: 1.4;
+        }
+        .download-container {
+            background: var(--gray-light);
+            border-radius: 24px;
+            padding: 60px;
+            max-width: 800px;
+            margin: 0 auto 100px;
+        }
+        .eula-gate {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: left;
+            margin-bottom: 40px;
+        }
+        .eula-gate p {
+            font-size: 0.9rem;
+            color: var(--fg);
+            margin: 0 0 16px 0;
+        }
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: var(--fg);
+            color: var(--bg);
+            padding: 16px 32px;
+            border-radius: 980px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .btn:disabled {
+            background: var(--border);
+            color: var(--gray-mid);
+            cursor: not-allowed;
+        }
+        .btn:not(:disabled):hover {
+            opacity: 0.8;
+            transform: scale(1.02);
+        }
+        .btn.secondary {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+        footer {
+            padding: 80px 20px;
+            background: var(--gray-light);
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+        .footer-nav {
+            margin-bottom: 30px;
+        }
+        .footer-nav a {
+            color: var(--gray-mid);
+            text-decoration: none;
+            margin: 0 20px;
+            font-size: 0.85rem;
+        }
+        .footer-nav a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="font-weight: 700; font-size: 1.25rem;">Project ReZero</div>
+        <nav>
+            <a href="docs/dev.html" style="color: var(--fg); text-decoration: none; font-weight: 500;">ドキュメント</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>未来を、再計算する。</h1>
+        <p class="tagline">
+            数学的に保証された信頼性と、物理法則に準拠した可逆性。<br>
+            Project ReZeroは、計算機から「熱」というコストを排除するための究極の基盤です。
+        </p>
+
+        <div class="download-container">
+            <h2 style="margin-top: 0; margin-bottom: 32px;">プロダクトをダウンロード</h2>
+            <div class="eula-gate">
+                <p>ダウンロードを開始する前に、以下の法的文書をご確認ください。</p>
+                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                    <input type="checkbox" id="consent" style="width: 20px; height: 20px; margin-top: 2px;">
+                    <label for="consent" style="font-size: 0.9rem; line-height: 1.5;">
+                        私は、<a href="docs/terms.html" target="_blank">利用規約</a>、<a href="docs/privacy.html" target="_blank">プライバシーポリシー</a>、および<a href="docs/license.html" target="_blank">エンドユーザーライセンス契約 (EULA)</a>の全条項を読み、これに同意します。
+                    </label>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button id="btn-core" class="btn" disabled onclick="location.href='https://github.com/rezero-org/rezero-core/releases/latest/download/rezero-compiler-windows.exe'">Compiler (.exe)</button>
+                <button id="btn-studio" class="btn" disabled onclick="location.href='https://github.com/rezero-org/rezero-core/releases/latest/download/rezero-studio.vsix'">VS Code Ext (.vsix)</button>
+                <button id="btn-vs" class="btn" disabled onclick="location.href='#'">Visual Studio Ext</button>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-nav">
+            <a href="docs/terms.html">利用規約</a>
+            <a href="docs/privacy.html">プライバシーポリシー</a>
+            <a href="docs/license.html">ライセンス / 免責事項</a>
+        </div>
+        <p style="font-size: 0.75rem; color: var(--gray-mid);">&copy; 2024 Project ReZero. すべての権利を保有。</p>
+    </footer>
+
+    <script>
+        const consent = document.getElementById('consent');
+        const btns = ['btn-core', 'btn-studio', 'btn-vs'].map(id => document.getElementById(id));
+        consent.addEventListener('change', () => {
+            btns.forEach(b => b.disabled = !consent.checked);
+        });
+    </script>
+</body>
+</html>
