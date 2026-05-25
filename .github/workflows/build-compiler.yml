@@ -40,13 +40,17 @@ jobs:
 
     - name: Install Z3 (macOS)
       if: matrix.os == 'macos-latest'
-      run: brew install z3
+      run: |
+        brew install z3
+        echo "Z3_SYS_Z3_HEADER=/opt/homebrew/include/z3.h" >> $GITHUB_ENV
 
     - name: Install Z3 (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         vcpkg install z3:x64-windows
         echo "Z3_SYS_NO_PKG_CONFIG=1" >> $GITHUB_ENV
+        # Find Z3 include directory in vcpkg
+        echo "Z3_SYS_Z3_HEADER=C:/hostedtoolcache/windows/vcpkg/installed/x64-windows/include/z3.h" >> $GITHUB_ENV
       shell: bash
 
     - name: Build Core Compiler

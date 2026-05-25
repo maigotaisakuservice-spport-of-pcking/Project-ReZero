@@ -2,6 +2,6 @@
   "name": "rezero-standalone",
   "version": "1.0.0",
   "main": "out/main.js",
-  "scripts": { "start": "electron .", "build": "tsc" },
+  "scripts": { "start": "electron .", "build": "tsc -p ./" },
   "devDependencies": { "electron": "^28.0.0", "typescript": "^5.3.3" }
 }
