@@ -23,6 +23,7 @@ jobs:
       run: msbuild rezero-vs-extension/ReZeroExtension.csproj /p:Configuration=Release /p:DeployExtension=false
 
     - name: Upload VSIX to Release
+      if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v2
       with:
         files: rezero-vs-extension/bin/Release/*.vsix

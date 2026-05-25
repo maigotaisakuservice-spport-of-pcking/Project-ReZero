@@ -36,6 +36,7 @@ jobs:
         npx vsce package -o ../dist/rezero-studio.vsix
 
     - name: Upload VSIX to Release
+      if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v2
       with:
         files: dist/rezero-studio.vsix
