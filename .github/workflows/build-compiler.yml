@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -31,22 +32,60 @@ jobs:
       with:
         targets: ${{ matrix.target }}
 
-    - name: Install Z3 (Ubuntu)
+    - name: Install Clang & Z3 Libraries (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
-      run: sudo apt-get update && sudo apt-get install -y libz3-dev
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang lld libz3-dev
+
+    - name: Install Z3 (macOS)
+      if: matrix.os == 'macos-latest'
+      run: brew install z3
+
+    - name: Install Z3 (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        vcpkg install z3:x64-windows
+        echo "Z3_SYS_NO_PKG_CONFIG=1" >> $GITHUB_ENV
+      shell: bash
 
     - name: Build Core Compiler
       run: cargo build --manifest-path rezero-core/Cargo.toml --release --target ${{ matrix.target }}
 
-    - name: Prepare Artifact
+    - name: Rename and Prepare Release Artifact
       run: |
         mkdir -p dist/
-        cp rezero-core/target/${{ matrix.target }}/release/rezero-core* dist/
+        if [ "${{ matrix.os }}" = "windows-latest" ]; then
+          cp rezero-core/target/${{ matrix.target }}/release/rezero-core.exe dist/${{ matrix.artifact_name }}
+        else
+          cp rezero-core/target/${{ matrix.target }}/release/rezero-core dist/${{ matrix.artifact_name }}
+        fi
       shell: bash
 
-    - name: Upload to Release
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: dist/
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: dist/
+
+    - name: Create Release and Upload Assets
       uses: softprops/action-gh-release@v2
       with:
-        files: dist/*
+        files: |
+          dist/rezero-compiler-linux/rezero-compiler-linux
+          dist/rezero-compiler-macos/rezero-compiler-macos
+          dist/rezero-compiler-windows.exe/rezero-compiler-windows.exe
+        draft: false
+        prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

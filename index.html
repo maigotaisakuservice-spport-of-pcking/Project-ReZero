@@ -47,8 +47,9 @@
                 </label>
             </div>
             <div id="download-links">
-                <button id="dl-compiler" class="btn" disabled onclick="location.href='#'">COMPILER (.EXE)</button>
-                <button id="dl-studio" class="btn" disabled onclick="location.href='#'">STUDIO (.VSIX)</button>
+                <button id="dl-compiler" class="btn" disabled onclick="location.href='https://github.com/rezero-org/rezero-core/releases/latest/download/rezero-compiler-windows.exe'">COMPILER (.EXE)</button>
+                <button id="dl-studio" class="btn" disabled onclick="location.href='https://github.com/rezero-org/rezero-core/releases/latest/download/rezero-studio.vsix'">VS CODE EXT (.VSIX)</button>
+                <button id="dl-vs" class="btn" disabled onclick="location.href='#'">VISUAL STUDIO (.VSIX)</button>
             </div>
         </div>
     </section>
@@ -66,9 +67,11 @@
         const checkbox = document.getElementById('agree');
         const btn1 = document.getElementById('dl-compiler');
         const btn2 = document.getElementById('dl-studio');
+        const btn3 = document.getElementById('dl-vs');
         checkbox.addEventListener('change', () => {
             btn1.disabled = !checkbox.checked;
             btn2.disabled = !checkbox.checked;
+            btn3.disabled = !checkbox.checked;
         });
     </script>
 </body>

@@ -19,6 +19,7 @@ Z3 SMTソルバをコンパイラバックエンドに統合。配列境界外�
 
 - `rezero-core/`: Rust製ネイティブコンパイラ & 検証器
 - `rezero-studio/`: VS Code拡張機能 (LSP / Webview)
+- `rezero-vs-extension/`: Visual Studio (IDE) 拡張機能
 - `rezero-standalone/`: Electron製スタンドアロンエディタ
 - `docs/`: 日本語による法的・技術ドキュメント
 

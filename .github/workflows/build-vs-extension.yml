@@ -1,0 +1,30 @@
+name: Build Visual Studio Extension
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-vsix:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+
+    - name: Restore NuGet packages
+      run: nuget restore rezero-vs-extension/ReZeroExtension.csproj
+
+    - name: Build VSIX
+      run: msbuild rezero-vs-extension/ReZeroExtension.csproj /p:Configuration=Release /p:DeployExtension=false
+
+    - name: Upload VSIX to Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: rezero-vs-extension/bin/Release/*.vsix
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

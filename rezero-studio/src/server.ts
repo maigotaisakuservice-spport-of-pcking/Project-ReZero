@@ -22,6 +22,17 @@ documents.onDidChangeContent(change => {
             }
         } catch(e) {}
         connection.sendDiagnostics({ uri: change.document.uri, diagnostics });
+
+        // Calculate and send entropy data
+        const lines = text.split('\n');
+        const assignmentsCount = lines.filter(line => line.includes('=') && !line.includes('==')).length;
+        const estimatedEntropy = assignmentsCount * 1.38e-23 * Math.log(2);
+
+        connection.sendNotification("rezero/energyProfile", {
+            uri: change.document.uri,
+            assignmentsCount,
+            entropy: estimatedEntropy
+        });
     });
     cp.stdin?.write(text);
     cp.stdin?.end();
